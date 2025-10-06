@@ -6,7 +6,10 @@ const program = new Command();
 program
   .option('-i, --input <file>', 'Input file path (required)')
   .option('-o, --output <file>', 'Output file path')
-  .option('-d, --display', 'Display result in console');
+  .option('-d, --display', 'Display result in console')
+  .option('-s, --survived', 'Show only survivors')
+  .option('-a, --age', 'Show passenger age');
+
 
 program.parse();
 
@@ -23,15 +26,41 @@ if (!fs.existsSync(options.input)) {
   process.exit(1);
 }
 
-// Читання файлу
+// Читаємо файл
 const data = fs.readFileSync(options.input, 'utf8');
 const lines = data.split('\n').filter(line => line.trim());
-const jsonData = lines.map(line => JSON.parse(line));
+let jsonData = lines.map(line => JSON.parse(line));
+
+if (options.survived) {
+  jsonData = jsonData.filter(passenger => passenger.Survived === "1");
+}
 
 const result = {
-  totalRecords: jsonData.length,
-  firstRecord: jsonData.slice(0, 3)
+  //totalRecords: jsonData.length,
+  passengers: jsonData.map(passenger => {
+    const output = {
+      name: passenger.Name,
+      ticket: passenger.Ticket
+    };
+    
+    if (options.age) {
+      output.age = passenger.Age;
+    }
+    
+    return output;
+  })
 };
+
+// Функція для форматування виводу
+function formatOutput(passengers, showAge) {
+  return passengers.map(p => {
+    if (showAge) {
+      return `${p.name} ${p.age} ${p.ticket}`;
+    } else {
+      return `${p.name} ${p.ticket}`;
+    }
+  }).join('\n');
+}
 
 // Вивід результатів
 if (options.output) {
@@ -39,5 +68,5 @@ if (options.output) {
 }
 
 if (options.display) {
-  console.log(JSON.stringify(result, null, 2));
+  console.log(formatOutput(result.passengers, options.age));
 }
