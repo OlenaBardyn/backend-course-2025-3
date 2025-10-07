@@ -26,17 +26,15 @@ if (!fs.existsSync(options.input)) {
   process.exit(1);
 }
 
-// Читаємо файл
 const data = fs.readFileSync(options.input, 'utf8');
 const lines = data.split('\n').filter(line => line.trim());
-let jsonData = lines.map(line => JSON.parse(line));
+let jsonData = lines.map(line => JSON.parse(line)); //Перетворюємо кожен рядок з JSON тексту в JavaScript об'єкт
 
 if (options.survived) {
   jsonData = jsonData.filter(passenger => passenger.Survived === "1");
 }
 
 const result = {
-  //totalRecords: jsonData.length,
   passengers: jsonData.map(passenger => {
     const output = {
       name: passenger.Name,
@@ -51,20 +49,21 @@ const result = {
   })
 };
 
-// Функція для форматування виводу
+// Форматування виводу
 function formatOutput(passengers, showAge) {
   return passengers.map(p => {
     if (showAge) {
       return `${p.name} ${p.age} ${p.ticket}`;
     } else {
       return `${p.name} ${p.ticket}`;
-    }
+    } 2   
   }).join('\n');
 }
 
 // Вивід результатів
 if (options.output) {
-  fs.writeFileSync(options.output, JSON.stringify(result, null, 2));
+  const textOutput = formatOutput(result.passengers, options.age);
+  fs.writeFileSync(options.output, textOutput);
 }
 
 if (options.display) {
